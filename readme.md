@@ -35,3 +35,10 @@ eduhub-validator \
   --add-header 'accept: application/json; version=5' \
   --add-header 'x-envelope-response: false'
 ```
+
+Relevant repos:
+
+https://github.com/SURFnet/eduhub-validator
+
+https://github.com/SURFnet/apie
+
