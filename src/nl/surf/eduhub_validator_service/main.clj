@@ -29,9 +29,9 @@
 (defroutes app-routes
   (GET "/endpoints/:endpoint-id/config" [endpoint-id]
     (fn [_]
-      (let [result (validate-endpoint endpoint-id)]
-        {:body (:message result)
-         :status (if (:valid result)
+      (let [{:keys [message valid]} (validate-endpoint endpoint-id)]
+        {:body message
+         :status (if valid
                    http-status/ok
                    http-status/bad-gateway)})))
   (route/not-found "Not Found"))
