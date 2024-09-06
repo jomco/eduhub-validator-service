@@ -19,26 +19,33 @@ The service is configured using environment variables:
 
 ```
 GATEWAY_URL=https://gateway.test.surfeduhub.nl/
-GATEWAY_BASIC_AUTH=USERNAME:PASS
+GATEWAY_BASIC_AUTH_USER=USER
+GATEWAY_BASIC_AUTH_PASS=PASS
+```
+
+## Build
+
+```
+make
+java -jar target/eduhub-validator-service.jar
+# To test:
+curl -v 'http://localhost:3000/endpoints/demo04.test.surfeduhub.nl/config'
+```
+
+
+## Run in Docker
+
+```
+make docker-build
+docker compose up
+# To test:
+curl -v 'http://localhost:3002/endpoints/demo04.test.surfeduhub.nl/config'
 ```
 
 ## Notes
-
-example eduhub-validor call
-
-```sh
-eduhub-validator \
-  --profile rio
-  --base-url https://gateway.test.surfeduhub.nl/ \
-  --basic-auth USERNAME:PASS \
-  --add-header 'x-route: endpoint=demo04.test.surfeduhub.nl' \
-  --add-header 'accept: application/json; version=5' \
-  --add-header 'x-envelope-response: false'
-```
 
 Relevant repos:
 
 https://github.com/SURFnet/eduhub-validator
 
 https://github.com/SURFnet/apie
-
