@@ -48,7 +48,6 @@
 
 (defn -main [& _]
   (let [[config errs] (envopts/opts env opt-specs)]
-    (prn config)
     (when errs
       (.println *err* "Error in environment configuration")
       (.println *err* (envopts/errs-description errs))
