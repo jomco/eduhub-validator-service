@@ -1,8 +1,10 @@
-(ns nl.surf.eduhub-validator-service.main
+(ns nl.surf.eduhub.validator.service.main
+  (:gen-class)
   (:require [babashka.http-client :as http]
             [clojure.string :as string]
             [compojure.core :refer [defroutes GET]]
             [compojure.route :as route]
+            [clojure.tools.logging :as log]
             [nl.jomco.http-status-codes :as http-status]
             [ring.adapter.jetty :refer [run-jetty]]
             [ring.middleware.defaults :refer [wrap-defaults api-defaults]]
@@ -14,6 +16,7 @@
     {:user user :pass pass}))
 
 (defn validate-endpoint [endpoint-id]
+  (log/info "validating endpoint: " endpoint-id)
   (try
     (let [response (http/get (str gateway-url "courses")
                              {:headers {"x-route" (str "endpoint=" endpoint-id)
@@ -41,5 +44,5 @@
       (wrap-defaults api-defaults)
       wrap-json-response))
 
-(defn -main []
+(defn -main [& _]
   (run-jetty app {:port 3000}))

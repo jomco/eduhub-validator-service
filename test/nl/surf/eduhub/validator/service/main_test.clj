@@ -1,7 +1,7 @@
-(ns nl.surf.eduhub-validator-service.main-test
+(ns nl.surf.eduhub.validator.service.main-test
   (:require [babashka.http-client :as http]
             [clojure.test :refer :all]
-            [nl.surf.eduhub-validator-service.main :as main]))
+            [nl.surf.eduhub.validator.service.main :as main]))
 
 (deftest test-validate-correct
   (with-redefs [http/request (fn [_] {:status 200 :body "mocked response"})]

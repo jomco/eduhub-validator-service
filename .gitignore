@@ -2,3 +2,7 @@
 .cpcache/
 .idea/
 validator-service.iml
+classes/
+target/
+.DS_Store
+.lsp/
