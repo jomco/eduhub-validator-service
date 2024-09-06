@@ -6,3 +6,4 @@ classes/
 target/
 .DS_Store
 .lsp/
+.envrc

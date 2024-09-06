@@ -5,6 +5,7 @@
            com.fasterxml.jackson.core/jackson-databind {:mvn/version "2.17.0"}
            compojure/compojure            {:mvn/version "1.7.1"}
            nl.jomco/clj-http-status-codes {:mvn/version "0.1"}
+           nl.jomco/envopts               {:mvn/version "0.0.4"}
            org.babashka/http-client       {:mvn/version "0.4.19"}
            org.babashka/json              {:mvn/version "0.1.6"}
            org.clojure/clojure            {:mvn/version "1.11.0"}

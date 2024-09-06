@@ -1,12 +1,7 @@
 <configuration>
   <!--
-       This is the development logging configuration and won't be on
+       This is the production logging configuration and will be on
        the classpath when running in production.
-
-       For prod or other use cases, set the path to an alternative
-       config using
-
-       java -Dlogback.configurationFile=/path/to/config.xml ...
 
        See https://logback.qos.ch/manual/configuration.html
   -->
