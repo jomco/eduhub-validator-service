@@ -32,4 +32,4 @@ opentelemetry-javaagent.jar:
 .PHONY: docker-build test lint check
 
 docker-build: Dockerfile docker-compose.yml opentelemetry-javaagent.jar
-	docker-compose build
+	docker compose build

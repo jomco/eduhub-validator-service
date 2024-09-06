@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2024 SURF B.V.
+# SPDX-FileContributor: Joost Diepenmaat
+#
+# SPDX-License-Identifier: Apache-2.0
+
+services:
+#
+# Prometheus will be scraping metrics.
+#
+# Goto http://localhost:9090/ to view the prometheus dashboard.
+#
+  validator-service:
+    build: .
+    ports:
+      - "3002:3000"
+    env_file:
+      - .envrc # read environment from local direnv settings
+    volumes:
+      - ./shared:/shared # writeable directory where gateway.config.yml is kept
