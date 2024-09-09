@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2024 SURF B.V.
+# SPDX-FileContributor: Joost Diepenmaat
+#
+# SPDX-License-Identifier: Apache-2.0
+
+services:
+  validator-service:
+    build: .
+    ports:
+      - "3002:3002"
+    env_file:
+      - .envrc # read environment from local direnv settings
