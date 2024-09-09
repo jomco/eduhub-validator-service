@@ -23,7 +23,7 @@ jobs:
 
           # store as today's cache
           key: "nvd-clojure-${{ steps.date.outputs.date }}"
-          # if today's cache does not yet exist, fetch from whatever iss
+          # if today's cache does not yet exist, fetch from whatever is
           # the most recent cache for nvd-clojure
           # and update that
           restore-keys: "nvd-clojure-"

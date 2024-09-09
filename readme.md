@@ -29,7 +29,7 @@ GATEWAY_BASIC_AUTH_PASS=PASS
 make
 java -jar target/eduhub-validator-service.jar
 # To test:
-curl -v 'http://localhost:3000/endpoints/demo04.test.surfeduhub.nl/config'
+curl -v 'http://localhost:3002/endpoints/demo04.test.surfeduhub.nl/config'
 ```
 
 

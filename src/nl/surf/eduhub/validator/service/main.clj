@@ -57,4 +57,4 @@
     (run-jetty (-> app-routes
                    (wrap-validator config)
                    (wrap-defaults api-defaults)
-                   wrap-json-response) {:port 3000})))
+                   wrap-json-response) {:port 3002})))
