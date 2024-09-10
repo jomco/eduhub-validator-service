@@ -7,6 +7,7 @@
             [environ.core :refer [env]]
             [nl.jomco.envopts :as envopts]
             [nl.jomco.http-status-codes :as http-status]
+            [nl.surf.eduhub.validator.service.authentication :as auth]
             [ring.adapter.jetty :refer [run-jetty]]
             [ring.middleware.defaults :refer [wrap-defaults api-defaults]]
             [ring.middleware.json :refer [wrap-json-response]]))
@@ -44,17 +45,31 @@
 (def opt-specs
   {:gateway-url             ["URL of gateway" :str :in [:gateway-url]]
    :gateway-basic-auth-user ["Basic auth username of gateway" :str :in [:gateway-basic-auth :user]]
-   :gateway-basic-auth-pass ["Basic auth password of gateway" :str :in [:gateway-basic-auth :pass]]})
+   :gateway-basic-auth-pass ["Basic auth password of gateway" :str :in [:gateway-basic-auth :pass]]
+   :introspection-client-id ["Basic auth username of introspection" :str :in [:introspection-basic-auth :user]]
+   :introspection-secret    ["Basic auth password of introspection" :str :in [:introspection-basic-auth :pass]]
+   :introspection-endpoint  ["Introspection endpoint url" :str :in [:introspection-endpoint-url]]})
+
+(defn start-server [routes]
+  (let [server (run-jetty routes {:port 3002 :join? false})
+        handler ^Runnable (fn [] (.stop server))]
+    ;; Add a shutdown hook to stop Jetty on JVM exit (Ctrl+C)
+    (.addShutdownHook (Runtime/getRuntime)
+                      (Thread. handler))
+    server))
 
 (defn -main [& _]
-  (let [[config errs] (envopts/opts env opt-specs)]
+  (let [[config errs] (envopts/opts env opt-specs)
+        introspection-endpoint (:introspection-endpoint-url config)
+        introspection-auth (:introspection-basic-auth config)]
     (when errs
       (.println *err* "Error in environment configuration")
       (.println *err* (envopts/errs-description errs))
       (.println *err* "Available environment vars:")
       (.println *err* (envopts/specs-description opt-specs))
       (System/exit 1))
-    (run-jetty (-> app-routes
-                   (wrap-validator config)
-                   (wrap-defaults api-defaults)
-                   wrap-json-response) {:port 3002})))
+    (start-server (-> app-routes
+                      (wrap-validator config)
+                      (auth/wrap-authentication introspection-endpoint introspection-auth)
+                      (wrap-defaults api-defaults)
+                      wrap-json-response))))

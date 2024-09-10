@@ -8,3 +8,4 @@ target/
 .lsp/
 .envrc
 opentelemetry-javaagent.jar
+.nrepl-port
