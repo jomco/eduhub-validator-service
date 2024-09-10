@@ -1,3 +1,21 @@
+;; This file is part of eduhub-validator-service
+;;
+;; Copyright (C) 2022 SURFnet B.V.
+;;
+;; This program is free software: you can redistribute it and/or
+;; modify it under the terms of the GNU Affero General Public License
+;; as published by the Free Software Foundation, either version 3 of
+;; the License, or (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful, but
+;; WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; Affero General Public License for more details.
+;;
+;; You should have received a copy of the GNU Affero General Public
+;; License along with this program.  If not, see
+;; <https://www.gnu.org/licenses/>.
+
 (ns nl.surf.eduhub.validator.service.main
   (:gen-class)
   (:require [babashka.http-client :as http]
@@ -43,12 +61,18 @@
         resp))))
 
 (def opt-specs
-  {:gateway-url             ["URL of gateway" :str :in [:gateway-url]]
-   :gateway-basic-auth-user ["Basic auth username of gateway" :str :in [:gateway-basic-auth :user]]
-   :gateway-basic-auth-pass ["Basic auth password of gateway" :str :in [:gateway-basic-auth :pass]]
-   :introspection-client-id ["Basic auth username of introspection" :str :in [:introspection-basic-auth :user]]
-   :introspection-secret    ["Basic auth password of introspection" :str :in [:introspection-basic-auth :pass]]
-   :introspection-endpoint  ["Introspection endpoint url" :str :in [:introspection-endpoint-url]]})
+  {:gateway-url                        ["URL of gateway" :str
+                                        :in [:gateway-url]]
+   :gateway-basic-auth-user            ["Basic auth username of gateway" :str
+                                        :in [:gateway-basic-auth :user]]
+   :gateway-basic-auth-pass            ["Basic auth password of gateway" :str
+                                        :in [:gateway-basic-auth :pass]]
+   :surf-conext-client-id              ["Basic auth username of introspection" :str
+                                        :in [:introspection-basic-auth :user]]
+   :surf-conext-client-secret          ["Basic auth password of introspection" :str
+                                        :in [:introspection-basic-auth :pass]]
+   :surf-conext-introspection-endpoint ["Introspection endpoint url" :str
+                                        :in [:introspection-endpoint-url]]})
 
 (defn start-server [routes]
   (let [server (run-jetty routes {:port 3002 :join? false})

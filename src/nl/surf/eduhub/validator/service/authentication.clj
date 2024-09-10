@@ -1,4 +1,4 @@
-;; This file is part of eduhub-rio-mapper
+;; This file is part of eduhub-validator-service
 ;;
 ;; Copyright (C) 2022 SURFnet B.V.
 ;;
