@@ -67,11 +67,11 @@
                                         :in [:gateway-basic-auth :user]]
    :gateway-basic-auth-pass            ["Basic auth password of gateway" :str
                                         :in [:gateway-basic-auth :pass]]
-   :surf-conext-client-id              ["Basic auth username of introspection" :str
+   :surf-conext-client-id              ["SurfCONEXT client id for validation service" :str
                                         :in [:introspection-basic-auth :user]]
-   :surf-conext-client-secret          ["Basic auth password of introspection" :str
+   :surf-conext-client-secret          ["SurfCONEXT client secret for validation service" :str
                                         :in [:introspection-basic-auth :pass]]
-   :surf-conext-introspection-endpoint ["Introspection endpoint url" :str
+   :surf-conext-introspection-endpoint ["SurfCONEXT introspection endpoint" :str
                                         :in [:introspection-endpoint-url]]})
 
 (defn start-server [routes]
