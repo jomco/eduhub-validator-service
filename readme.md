@@ -21,8 +21,8 @@ The service is configured using environment variables:
 GATEWAY_URL                         https://gateway.test.surfeduhub.nl/
 GATEWAY_BASIC_AUTH_USER             Username for gateway
 GATEWAY_BASIC_AUTH_PASS             Password for gateway
-SURF_CONEXT_CLIENT_ID               SurfCONEXT client id for Mapper service
-SURF_CONEXT_CLIENT_SECRET           SurfCONEXT client secret for Mapper service
+SURF_CONEXT_CLIENT_ID               SurfCONEXT client id for validation service
+SURF_CONEXT_CLIENT_SECRET           SurfCONEXT client secret for validation service
 SURF_CONEXT_INTROSPECTION_ENDPOINT  SurfCONEXT introspection endpoint
 ```
 
