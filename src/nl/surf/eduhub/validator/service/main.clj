@@ -44,7 +44,7 @@
         {:valid false :message (str "Endpoint validation failed with status: " (:status response))}))
     (catch Throwable e
       (log/error e "Exception in validate-endpoint")
-      {:valid false :error true :message (str "Error during validation " (.getClass e) ":" (.getMessage e))})))
+      {:valid false :error true :message (str "Error during validation " (class e) ":" (ex-message e))})))
 
 (defroutes app-routes
   (GET "/endpoints/:endpoint-id/config" [endpoint-id]
