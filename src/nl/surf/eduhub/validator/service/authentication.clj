@@ -57,7 +57,10 @@
          (string? token)
          (map? auth)]}
   (try
-    (let [opts {:basic-auth auth :form-params {:token token} :throw false}
+    (let [opts {:basic-auth auth
+                :form-params {:token token}
+                :throw false
+                :headers {"Accept" "application/json"}}
           {:keys [status] :as response} (http/post uri opts)]
       (when (= http-status/ok status)
         ;; See RFC 7662, section 2.2
@@ -84,7 +87,7 @@
   (fn [token]
     (authenticate-token introspection-endpoint
                         token
-                        {:basic-auth auth})))
+                        auth)))
 
 (defn handle-request-with-token [request request-handler client-id]
   (if (nil? client-id)
