@@ -1,5 +1,5 @@
 {:paths   ["src" "resources" "classes"]
- :deps    {cheshire                                    {:mvn/version "5.13.0"}
+ :deps    {cheshire/cheshire                           {:mvn/version "5.13.0"}
            ch.qos.logback/logback-classic              {:mvn/version "1.5.8"}
            ch.qos.logback.contrib/logback-jackson      {:mvn/version "0.1.5"}
            ch.qos.logback.contrib/logback-json-classic {:mvn/version "0.1.5"}
