@@ -30,14 +30,14 @@
             [ring.middleware.defaults :refer [wrap-defaults api-defaults]]
             [ring.middleware.json :refer [wrap-json-response]]))
 
-(defn validate-endpoint [endpoint-id config]
+(defn validate-endpoint [endpoint-id {:keys [gateway-url gateway-basic-auth ooapi-version] :as _config}]
   (log/info "validating endpoint: " endpoint-id)
   (try
-    (let [response (http/get (str (:gateway-url config) "courses")
+    (let [response (http/get (str gateway-url "courses")
                              {:headers {"x-route" (str "endpoint=" endpoint-id)
-                                        "accept" "application/json; version=5"
+                                        "accept" (str "application/json; version=" ooapi-version)
                                         "x-envelope-response" "false"}
-                              :basic-auth (:gateway-basic-auth config)
+                              :basic-auth gateway-basic-auth
                               :throws false})]
       (if (= (:status response) 200)
         {:valid true}
@@ -74,7 +74,9 @@
    :surf-conext-client-secret          ["SurfCONEXT client secret for validation service" :str
                                         :in [:introspection-basic-auth :pass]]
    :surf-conext-introspection-endpoint ["SurfCONEXT introspection endpoint" :str
-                                        :in [:introspection-endpoint-url]]})
+                                        :in [:introspection-endpoint-url]]
+   :ooapi-version                      ["Ooapi version to pass through to gateway" :str
+                                        :in [:ooapi-version]]})
 
 (defn start-server [routes]
   (let [server (run-jetty routes {:port 3002 :join? false})

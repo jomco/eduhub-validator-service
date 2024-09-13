@@ -24,6 +24,7 @@ GATEWAY_BASIC_AUTH_PASS             Password for gateway
 SURF_CONEXT_CLIENT_ID               SurfCONEXT client id for validation service
 SURF_CONEXT_CLIENT_SECRET           SurfCONEXT client secret for validation service
 SURF_CONEXT_INTROSPECTION_ENDPOINT  SurfCONEXT introspection endpoint
+OOAPI_VERSION                       Ooapi version to pass through to gateway
 ```
 
 ## Build
