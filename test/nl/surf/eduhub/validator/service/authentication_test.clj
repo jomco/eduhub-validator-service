@@ -79,7 +79,7 @@
                (handler {:headers {"authorization" (str "Bearer " valid-token)}}))
             "Ok when valid token provided")
 
-        (is (= {:status 200, :body {:client nil}}
+        (is (= {:status 403, :body "No client-id found"}
                (handler {}))
             "Authorized without client when no token provided")
 
@@ -108,7 +108,7 @@
                (handler {:headers {"authorization" (str "Bearer " valid-token)}}))
             "Forbidden when valid token provided but client id is unknown")
 
-        (is (= {:status 200, :body {:client nil}}
+        (is (= {:status 403, :body "No client-id found"}
                (handler {}))
             "Authorized without client when no token provided")
 
