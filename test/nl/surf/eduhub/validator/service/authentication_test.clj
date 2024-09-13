@@ -58,21 +58,21 @@
     {:status http-status/ok
      :body {:active false}}))
 
-(defn- make-handler [introspection-endpoint basic-auth allowed-client-ids]
+(defn- make-handler [introspection-endpoint basic-auth allowed-client-id-set]
   (-> (fn [req]
         (let [body {:client (:client-id req)}]
           {:status http-status/ok
            :body   body}))
-      (authentication/wrap-authentication introspection-endpoint basic-auth)
-      (authentication/wrap-allowed-clients-checker allowed-client-ids)))
+      (authentication/wrap-allowed-clients-checker allowed-client-id-set)
+      (authentication/wrap-authentication introspection-endpoint basic-auth)))
 
 (deftest token-validator
   ;; This binds the *dynamic* http client in clj-http.client
-  (reset! count-calls 0)
   (with-redefs [http/request mock-introspection]
     (let [introspection-endpoint "https://example.com"
           basic-auth {:user "foo" :pass "bar"}]
-      (let [handler (make-handler introspection-endpoint basic-auth "institution_client_id")]
+      (reset! count-calls 0)
+      (let [handler (make-handler introspection-endpoint basic-auth #{"institution_client_id"})]
         (is (= {:status    http-status/ok
                 :body      {:client "institution_client_id"}
                 :client-id "institution_client_id"}
@@ -100,9 +100,11 @@
         (is (= 0 @count-calls)
             "No more calls to introspection-endpoint"))
 
-      (let [handler (make-handler introspection-endpoint basic-auth "wrong_client_id")]
+      (let [handler (make-handler introspection-endpoint basic-auth #{"wrong_client_id"})]
+        (reset! count-calls 0)
         (is (= {:status http-status/forbidden
-                :body   "Unknown client id"}
+                :body   "Unknown client id"
+                :client-id "institution_client_id"}
                (handler {:headers {"authorization" (str "Bearer " valid-token)}}))
             "Forbidden when valid token provided but client id is unknown")
 
@@ -119,7 +121,8 @@
 
         (reset! count-calls 0)
         (is (= {:status    http-status/forbidden
-                :body      "Unknown client id"}
+                :body      "Unknown client id"
+                :client-id "institution_client_id"}
                (handler {:headers {"authorization" (str "Bearer " valid-token)}}))
             "CACHED: Forbidden when valid token provided but client id is unknown")
 

@@ -19,6 +19,7 @@
 (ns nl.surf.eduhub.validator.service.main
   (:gen-class)
   (:require [babashka.http-client :as http]
+            [clojure.string :as str]
             [compojure.core :refer [defroutes GET]]
             [compojure.route :as route]
             [clojure.tools.logging :as log]
@@ -99,9 +100,10 @@
       (.println *err* "Available environment vars:")
       (.println *err* (envopts/specs-description opt-specs))
       (System/exit 1))
-    (start-server (-> app-routes
-                      (wrap-validator config)
-                      (auth/wrap-authentication introspection-endpoint introspection-auth)
-                      (auth/wrap-allowed-clients-checker allowed-client-ids)
-                      (wrap-defaults api-defaults)
-                      wrap-json-response))))
+    (let [allowed-client-id-set (set (str/split allowed-client-ids #","))]
+      (start-server (-> app-routes
+                        (wrap-validator config)
+                        (auth/wrap-allowed-clients-checker allowed-client-id-set)
+                        (auth/wrap-authentication introspection-endpoint introspection-auth)
+                        (wrap-defaults api-defaults)
+                        wrap-json-response)))))

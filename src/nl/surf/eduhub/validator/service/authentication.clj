@@ -39,7 +39,6 @@
   (:require [babashka.http-client :as http]
             [cheshire.core :as json]
             [clojure.core.memoize :as memo]
-            [clojure.string :as str]
             [clojure.tools.logging :as log]
             [nl.jomco.http-status-codes :as http-status]
             [ring.util.response :as response]))
@@ -119,6 +118,7 @@
         (f request)))))
 
 (defn wrap-allowed-clients-checker [f allowed-client-id-set]
+  {:pre [(set? allowed-client-id-set)]}
   (fn [{:keys [client-id] :as request}]
     (if (and client-id (not (allowed-client-id-set client-id)))
       {:body "Unknown client id" :status http-status/forbidden}
