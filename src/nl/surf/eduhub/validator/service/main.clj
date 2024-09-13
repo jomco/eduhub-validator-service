@@ -23,10 +23,9 @@
             [compojure.core :refer [defroutes GET]]
             [compojure.route :as route]
             [clojure.tools.logging :as log]
-            [environ.core :refer [env]]
-            [nl.jomco.envopts :as envopts]
             [nl.jomco.http-status-codes :as http-status]
             [nl.surf.eduhub.validator.service.authentication :as auth]
+            [nl.surf.eduhub.validator.service.config :as config]
             [ring.adapter.jetty :refer [run-jetty]]
             [ring.middleware.defaults :refer [wrap-defaults api-defaults]]
             [ring.middleware.json :refer [wrap-json-response]]))
@@ -63,24 +62,6 @@
                      http-status/ok)})
         resp))))
 
-(def opt-specs
-  {:gateway-url                        ["URL of gateway" :str
-                                        :in [:gateway-url]]
-   :gateway-basic-auth-user            ["Basic auth username of gateway" :str
-                                        :in [:gateway-basic-auth :user]]
-   :gateway-basic-auth-pass            ["Basic auth password of gateway" :str
-                                        :in [:gateway-basic-auth :pass]]
-   :allowed-client-ids                 ["Comma separated list of allowed SurfCONEXT client ids." :str
-                                        :in [:allowed-client-ids]]
-   :surf-conext-client-id              ["SurfCONEXT client id for validation service" :str
-                                        :in [:introspection-basic-auth :user]]
-   :surf-conext-client-secret          ["SurfCONEXT client secret for validation service" :str
-                                        :in [:introspection-basic-auth :pass]]
-   :surf-conext-introspection-endpoint ["SurfCONEXT introspection endpoint" :str
-                                        :in [:introspection-endpoint-url]]
-   :ooapi-version                      ["Ooapi version to pass through to gateway" :str
-                                        :in [:ooapi-version]]})
-
 (defn start-server [routes]
   (let [server (run-jetty routes {:port 3002 :join? false})
         handler ^Runnable (fn [] (.stop server))]
@@ -90,20 +71,13 @@
     server))
 
 (defn -main [& _]
-  (let [[config errs] (envopts/opts env opt-specs)
+  (let [config (config/load-config-from-env)
         introspection-endpoint (:introspection-endpoint-url config)
         introspection-auth (:introspection-basic-auth config)
-        allowed-client-ids (:allowed-client-ids config)]
-    (when errs
-      (.println *err* "Error in environment configuration")
-      (.println *err* (envopts/errs-description errs))
-      (.println *err* "Available environment vars:")
-      (.println *err* (envopts/specs-description opt-specs))
-      (System/exit 1))
-    (let [allowed-client-id-set (set (str/split allowed-client-ids #","))]
-      (start-server (-> app-routes
-                        (wrap-validator config)
-                        (auth/wrap-allowed-clients-checker allowed-client-id-set)
-                        (auth/wrap-authentication introspection-endpoint introspection-auth)
-                        (wrap-defaults api-defaults)
-                        wrap-json-response)))))
+        allowed-client-id-set (set (str/split (:allowed-client-ids config) #","))]
+    (start-server (-> app-routes
+                      (wrap-validator config)
+                      (auth/wrap-allowed-clients-checker allowed-client-id-set)
+                      (auth/wrap-authentication introspection-endpoint introspection-auth)
+                      (wrap-defaults api-defaults)
+                      wrap-json-response))))
