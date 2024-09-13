@@ -37,12 +37,14 @@
                              {:headers {"x-route" (str "endpoint=" endpoint-id)
                                         "accept" "application/json; version=5"
                                         "x-envelope-response" "false"}
-                              :basic-auth (:gateway-basic-auth config)})]
+                              :basic-auth (:gateway-basic-auth config)
+                              :throws false})]
       (if (= (:status response) 200)
         {:valid true}
         {:valid false :message (str "Endpoint validation failed with status: " (:status response))}))
     (catch Throwable e
-      {:valid false :message (str "Error during validation: " (.getMessage e))})))
+      (log/error e "Exception in validate-endpoint")
+      {:valid false :error true :message (str "Error during validation " (class e) ":" (ex-message e))})))
 
 (defroutes app-routes
   (GET "/endpoints/:endpoint-id/config" [endpoint-id]
@@ -53,11 +55,11 @@
   (fn [req]
     (let [{:keys [validator endpoint-id] :as resp} (app req)]
       (if validator
-        (let [{:keys [valid] :as body} (validate-endpoint endpoint-id config)]
+        (let [{:keys [error] :as body} (validate-endpoint endpoint-id config)]
           {:body body
-           :status (if valid
-                     http-status/ok
-                     http-status/bad-gateway)})
+           :status (if error
+                     http-status/internal-server-error
+                     http-status/ok)})
         resp))))
 
 (def opt-specs
