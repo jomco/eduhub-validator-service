@@ -39,6 +39,7 @@
   (:require [babashka.http-client :as http]
             [cheshire.core :as json]
             [clojure.core.memoize :as memo]
+            [clojure.string :as str]
             [clojure.tools.logging :as log]
             [nl.jomco.http-status-codes :as http-status]
             [ring.util.response :as response]))
@@ -52,7 +53,7 @@
 ;; Take a authentication uri, basic auth credentials and a token extracted from the bearer token
 ;; and make a call to the authentication endpoint.
 ;; Returns the client id if authentication is successful, otherwise nil.
-(defn authenticate-token [uri token auth]
+(defn- authenticate-token [uri token auth]
   {:pre [(string? uri)
          (string? token)
          (map? auth)]}
@@ -75,7 +76,7 @@
       (log/error ex "Error in token-authenticator")
       nil)))
 
-(defn make-token-authenticator
+(defn- make-token-authenticator
   "Make a token authenticator that uses the OIDC `introspection-endpoint`.
 
   Returns a authenticator that tests the token using the given
@@ -89,7 +90,7 @@
                         token
                         auth)))
 
-(defn handle-request-with-token [request request-handler client-id]
+(defn- handle-request-with-token [request request-handler client-id]
   (if (nil? client-id)
     (response/status http-status/forbidden)
     ;; set client-id on request and response (for tracing)
@@ -116,3 +117,9 @@
       (if-let [token (bearer-token request)]
         (handle-request-with-token request f (authenticator token))
         (f request)))))
+
+(defn wrap-allowed-clients-checker [f allowed-client-id-set]
+  (fn [{:keys [client-id] :as request}]
+    (if (and client-id (not (allowed-client-id-set client-id)))
+      {:body "Unknown client id" :status http-status/forbidden}
+      (f request))))

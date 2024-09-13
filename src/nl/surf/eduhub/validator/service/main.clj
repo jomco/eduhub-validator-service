@@ -69,6 +69,8 @@
                                         :in [:gateway-basic-auth :user]]
    :gateway-basic-auth-pass            ["Basic auth password of gateway" :str
                                         :in [:gateway-basic-auth :pass]]
+   :allowed-client-ids                 ["Comma separated list of allowed SurfCONEXT client ids." :str
+                                        :in [:allowed-client-ids]]
    :surf-conext-client-id              ["SurfCONEXT client id for validation service" :str
                                         :in [:introspection-basic-auth :user]]
    :surf-conext-client-secret          ["SurfCONEXT client secret for validation service" :str
@@ -89,7 +91,8 @@
 (defn -main [& _]
   (let [[config errs] (envopts/opts env opt-specs)
         introspection-endpoint (:introspection-endpoint-url config)
-        introspection-auth (:introspection-basic-auth config)]
+        introspection-auth (:introspection-basic-auth config)
+        allowed-client-ids (:allowed-client-ids config)]
     (when errs
       (.println *err* "Error in environment configuration")
       (.println *err* (envopts/errs-description errs))
@@ -99,5 +102,6 @@
     (start-server (-> app-routes
                       (wrap-validator config)
                       (auth/wrap-authentication introspection-endpoint introspection-auth)
+                      (auth/wrap-allowed-clients-checker allowed-client-ids)
                       (wrap-defaults api-defaults)
                       wrap-json-response))))
