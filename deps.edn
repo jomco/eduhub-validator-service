@@ -1,5 +1,6 @@
 {:paths   ["src" "test" "resources" "classes"]
- :deps    {ch.qos.logback.contrib/logback-json-classic {:mvn/version "0.1.5"}
+ :deps    {ch.qos.logback.contrib/logback-jackson      {:mvn/version "0.1.5"}
+           ch.qos.logback.contrib/logback-json-classic {:mvn/version "0.1.5"}
            ch.qos.logback/logback-classic              {:mvn/version "1.5.8"}
            cheshire/cheshire                           {:mvn/version "5.13.0"}
            com.fasterxml.jackson.core/jackson-databind {:mvn/version "2.17.2"}
