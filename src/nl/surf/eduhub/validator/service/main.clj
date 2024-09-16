@@ -38,7 +38,7 @@
                                         "accept" (str "application/json; version=" ooapi-version)
                                         "x-envelope-response" "false"}
                               :basic-auth gateway-basic-auth
-                              :throws false})]
+                              :throw false})]
       (if (= (:status response) 200)
         {:valid true}
         {:valid false :message (str "Endpoint validation failed with status: " (:status response))}))
@@ -79,5 +79,5 @@
                       (wrap-validator config)
                       (auth/wrap-allowed-clients-checker allowed-client-id-set)
                       (auth/wrap-authentication introspection-endpoint introspection-auth)
-                      (wrap-defaults api-defaults)
-                      wrap-json-response))))
+                      wrap-json-response
+                      (wrap-defaults api-defaults)))))

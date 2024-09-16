@@ -120,6 +120,7 @@
 (defn wrap-allowed-clients-checker [f allowed-client-id-set]
   {:pre [(set? allowed-client-id-set)]}
   (fn [{:keys [client-id] :as request}]
+    ;; FIXME: disallow request without valid clients
     (if (and client-id (not (allowed-client-id-set client-id)))
       {:body "Unknown client id" :status http-status/forbidden}
       (f request))))
