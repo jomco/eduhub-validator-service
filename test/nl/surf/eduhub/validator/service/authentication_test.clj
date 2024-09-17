@@ -81,7 +81,7 @@
 
         (is (= {:status 403, :body "No client-id found"}
                (handler {}))
-            "Authorized without client when no token provided")
+            "Not authorized when no token provided")
 
         (is (= http-status/forbidden
                (:status (handler {:headers {"authorization" (str "Bearer invalid-token")}})))
@@ -110,7 +110,7 @@
 
         (is (= {:status 403, :body "No client-id found"}
                (handler {}))
-            "Authorized without client when no token provided")
+            "Not authorized when no token provided")
 
         (is (= http-status/forbidden
                (:status (handler {:headers {"authorization" (str "Bearer invalid-token")}})))
