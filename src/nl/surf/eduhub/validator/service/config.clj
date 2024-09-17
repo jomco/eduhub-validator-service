@@ -19,96 +19,49 @@
 (ns nl.surf.eduhub.validator.service.config
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
-            [environ.core :refer [env]]
             [nl.jomco.envopts :as envopts]))
 
 (def opt-specs
   {:gateway-url                        ["URL of gateway" :str
                                         :in [:gateway-url]]
    :gateway-basic-auth-user            ["Basic auth username of gateway" :str
-                                        :default nil
                                         :in [:gateway-basic-auth :user]]
    :gateway-basic-auth-pass            ["Basic auth password of gateway" :str
-                                        :default nil
                                         :in [:gateway-basic-auth :pass]]
-   :gateway-basic-auth-user-file       ["Basic auth username of gateway, stored in secret file" :str
-                                        :default nil
-                                        :in [:gateway-basic-auth :user-file]]
-   :gateway-basic-auth-pass-file       ["Basic auth password of gateway, stored in secret file" :str
-                                        :default nil
-                                        :in [:gateway-basic-auth :pass-file]]
    :allowed-client-ids                 ["Comma separated list of allowed SurfCONEXT client ids." :str
                                         :in [:allowed-client-ids]]
    :surf-conext-client-id              ["SurfCONEXT client id for validation service" :str
-                                        :default nil
                                         :in [:introspection-basic-auth :user]]
    :surf-conext-client-secret          ["SurfCONEXT client secret for validation service" :str
-                                        :default nil
                                         :in [:introspection-basic-auth :pass]]
-   :surf-conext-client-id-file         ["SurfCONEXT client id for validation service, stored in secret file" :str
-                                        :default nil
-                                        :in [:introspection-basic-auth :user-file]]
-   :surf-conext-client-secret-file     ["SurfCONEXT client secret for validation service, stored in secret file" :str
-                                        :default nil
-                                        :in [:introspection-basic-auth :pass-file]]
    :surf-conext-introspection-endpoint ["SurfCONEXT introspection endpoint" :str
                                         :in [:introspection-endpoint-url]]
    :ooapi-version                      ["Ooapi version to pass through to gateway" :str
                                         :in [:ooapi-version]]})
 
-(def key-value-pairs-with-optional-secret-files
-  {:gateway-basic-auth-user [:gateway-basic-auth :user]
-   :gateway-basic-auth-pass [:gateway-basic-auth :pass]
-   :surf-conext-client-id [:introspection-basic-auth :user]
-   :surf-conext-client-secret [:introspection-basic-auth :pass]})
+(defn- file-secret-loader-reducer [env-map value-key]
+  (let [file-key (keyword (str (name value-key) "-file"))
+        path (file-key env-map)]
+    (cond
+      (nil? path)
+      env-map
 
-(defn- validate-required-secrets
-  " If a key \"K\" in `opt-specs` is not present, and a key \"K-file\"\n  is present,
-  load the secret from that file and put it in the env map\n  under K."
-  [config]
-  (let [missing-env (reduce
-                      (fn [m [k v]] (if (get-in config v)
-                                      m
-                                      (assoc m k "missing")))
-                      {}
-                      key-value-pairs-with-optional-secret-files)]
-    (when (not-empty missing-env)
-      (.println *err* "Configuration error")
-      (.println *err* (envopts/errs-description missing-env))
-      (System/exit 1))
-    config))
+      (not (.exists (io/file path)))
+      (throw (ex-info (str "ENV var contains filename that does not exist: " path)
+                      {:filename path, :env-path file-key}))
 
-(defn dissoc-in
-  "Return nested map with path removed."
-  [m ks]
-  (let [path (butlast ks)
-        node (last ks)]
-    (if (empty? path)
-      (dissoc m node)
-      (update-in m path dissoc node))))
+      (value-key env-map)
+      (throw (ex-info "ENV var contains secret both as file and as value"
+                      {:env-path [value-key file-key]}))
 
-(defn- load-secret-from-file [config k]
-  (let [file-key-node (keyword (str (name (last k)) "-file")) ; The last entry in the :in array, with a "-file" suffix added
-        root-key-path (pop k)                               ; The :in array without the last item
-        file-key-path (conj root-key-path file-key-node)    ; The :in array with the last item having a "-file" suffix
-        path (get-in config file-key-path)                  ; File path to secret
-        config (dissoc-in config file-key-path)]            ; Remove -file key from config
-    (if (nil? path)
-      config
-      (if (.exists (io/file path))
-        (assoc-in config k (str/trim (slurp path)))         ; Overwrite config with secret from file
-        (throw (ex-info (str "ENV var contains filename that does not exist: " path)
-                        {:filename path, :env-path k}))))))
+      :else
+      (assoc env-map value-key (str/trim (slurp path))))))
 
-(defn load-config-from-env []
-  (let [[config errs] (envopts/opts env opt-specs)]
-    (when errs
-      (.println *err* "Error in environment configuration")
-      (.println *err* (envopts/errs-description errs))
-      (.println *err* "Available environment vars:")
-      (.println *err* (envopts/specs-description opt-specs))
-      (System/exit 1))
-    (->> key-value-pairs-with-optional-secret-files
-         vals
-         (reduce load-secret-from-file config)
-         validate-required-secrets)))
+;; These ENV keys may alternatively have a form in which the secret is contained in a file.
+;; These ENV keys have a -file suffix, e.g.: gateway-basic-auth-pass-file
+(def env-keys-with-alternate-file-secret
+  [:gateway-basic-auth-user :gateway-basic-auth-pass :surf-conext-client-id :surf-conext-client-secret])
+
+(defn load-config-from-env [env-map]
+  (-> (reduce file-secret-loader-reducer env-map env-keys-with-alternate-file-secret)
+      (envopts/opts opt-specs)))

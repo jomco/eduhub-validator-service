@@ -23,6 +23,8 @@
             [compojure.core :refer [defroutes GET]]
             [compojure.route :as route]
             [clojure.tools.logging :as log]
+            [environ.core :refer [env]]
+            [nl.jomco.envopts :as envopts]
             [nl.jomco.http-status-codes :as http-status]
             [nl.surf.eduhub.validator.service.authentication :as auth]
             [nl.surf.eduhub.validator.service.config :as config]
@@ -31,7 +33,7 @@
             [ring.middleware.json :refer [wrap-json-response]]))
 
 (defn validate-endpoint [endpoint-id {:keys [gateway-url gateway-basic-auth ooapi-version] :as _config}]
-  (log/info "validating endpoint: " endpoint-id " - gateway-url: " gateway-url)
+  (log/info (str "validating endpoint: " endpoint-id " - gateway-url: " gateway-url))
   (try
     (let [response (http/get (str gateway-url "courses")
                              {:headers {"x-route" (str "endpoint=" endpoint-id)
@@ -71,13 +73,19 @@
     server))
 
 (defn -main [& _]
-  (let [config (config/load-config-from-env)
-        introspection-endpoint (:introspection-endpoint-url config)
-        introspection-auth (:introspection-basic-auth config)
-        allowed-client-id-set (set (str/split (:allowed-client-ids config) #","))]
-    (start-server (-> app-routes
-                      (wrap-validator config)
-                      (auth/wrap-allowed-clients-checker allowed-client-id-set)
-                      (auth/wrap-authentication introspection-endpoint introspection-auth)
-                      wrap-json-response
-                      (wrap-defaults api-defaults)))))
+  (let [[config errs] (config/load-config-from-env env)]
+    (when errs
+      (.println *err* "Error in environment configuration")
+      (.println *err* (envopts/errs-description errs))
+      (.println *err* "Available environment vars:")
+      (.println *err* (envopts/specs-description config/opt-specs))
+      (System/exit 1))
+    (let [introspection-endpoint (:introspection-endpoint-url config)
+          introspection-auth     (:introspection-basic-auth config)
+          allowed-client-id-set  (set (str/split (:allowed-client-ids config) #","))]
+      (start-server (-> app-routes
+                        (wrap-validator config)
+                        (auth/wrap-allowed-clients-checker allowed-client-id-set)
+                        (auth/wrap-authentication introspection-endpoint introspection-auth)
+                        wrap-json-response
+                        (wrap-defaults api-defaults))))))
