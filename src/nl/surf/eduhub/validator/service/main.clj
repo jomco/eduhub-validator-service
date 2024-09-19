@@ -33,9 +33,10 @@
             [ring.middleware.json :refer [wrap-json-response]]))
 
 (defn validate-endpoint [endpoint-id {:keys [gateway-url gateway-basic-auth ooapi-version] :as _config}]
+  {:pre [gateway-url]}
   (log/info (str "validating endpoint: " endpoint-id " - gateway-url: " gateway-url))
   (try
-    (let [response (http/get (str gateway-url "courses")
+    (let [response (http/get (str gateway-url (if (.endsWith gateway-url "/") "" "/") "courses")
                              {:headers {"x-route" (str "endpoint=" endpoint-id)
                                         "accept" (str "application/json; version=" ooapi-version)
                                         "x-envelope-response" "false"}

@@ -21,7 +21,7 @@
             [clojure.test :refer [deftest is]]
             [nl.surf.eduhub.validator.service.main :as main]))
 
-(def app (main/wrap-validator main/app-routes {}))
+(def app (main/wrap-validator main/app-routes {:gateway-url "http://gateway.dev.surf.nl"}))
 
 (deftest test-validate-correct
   (with-redefs [http/request (fn [_] {:status 200 :body "mocked response"})]
