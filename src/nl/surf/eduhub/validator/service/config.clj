@@ -55,7 +55,9 @@
                       {:env-path [value-key file-key]}))
 
       :else
-      (assoc env-map value-key (str/trim (slurp path))))))
+      (-> env-map
+          (assoc value-key (str/trim (slurp path)))
+          (dissoc file-key)))))
 
 ;; These ENV keys may alternatively have a form in which the secret is contained in a file.
 ;; These ENV keys have a -file suffix, e.g.: gateway-basic-auth-pass-file
