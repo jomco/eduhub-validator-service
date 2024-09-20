@@ -18,12 +18,9 @@
 
 (ns nl.surf.eduhub.validator.service.config-test
   (:require [clojure.test :refer [deftest is]]
-            [nl.surf.eduhub.validator.service.config :as config]
-            [nl.surf.eduhub.validator.service.main :as main])
+            [nl.surf.eduhub.validator.service.config :as config])
   (:import [clojure.lang ExceptionInfo]
            [java.io File]))
-
-(def app (main/wrap-validator main/app-routes {}))
 
 (def default-env {:allowed-client-ids "default",
                   :gateway-basic-auth-pass "default",
