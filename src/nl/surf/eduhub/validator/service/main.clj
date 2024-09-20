@@ -72,7 +72,7 @@
           (log/error "Unexpected response status received from gateway: " status)
           {:status http-status/internal-server-error
            :body   {:valid   false
-                    :message (str "Internal error in validator-service: " status)}})))
+                    :message (str "Unexpected response status received from gateway: " status)}})))
     (catch Throwable e
       (log/error e "Exception in validate-endpoint")
       {:status http-status/internal-server-error

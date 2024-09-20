@@ -42,7 +42,7 @@
 (deftest test-unexpected-gateway-status
   (with-redefs [http/request (fn [_] {:status 500 :body "mocked response"})]
     (is (= {:status 500
-            :body {:message "Internal error in validator-service: 500", :valid false}}
+            :body {:message "Unexpected response status received from gateway: 500", :valid false}}
            (app {:uri "/endpoints/google.com/config" :request-method :get})))))
 
 (deftest test-validate-fails
