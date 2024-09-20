@@ -18,19 +18,35 @@
 
 (ns nl.surf.eduhub.validator.service.main-test
   (:require [babashka.http-client :as http]
+            [clojure.data.json :as json]
             [clojure.test :refer [deftest is]]
             [nl.surf.eduhub.validator.service.main :as main]))
 
 (def app (main/wrap-validator main/app-routes {:gateway-url "http://gateway.dev.surf.nl"}))
 
 (deftest test-validate-correct
-  (with-redefs [http/request (fn [_] {:status 200 :body "mocked response"})]
+  (with-redefs [http/request (fn [_] {:status 200
+                                      :body (json/write-str (assoc-in {} [:gateway :endpoints :google.com :responseCode] 200))})]
     (is (= {:status 200
             :body {:valid true} }
            (app {:uri "/endpoints/google.com/config" :request-method :get})))))
 
+(deftest test-validate-failed-endpoint
+  (with-redefs [http/request (fn [_] {:status 200
+                                      :body (json/write-str (assoc-in {} [:gateway :endpoints :google.com :responseCode] 500))})]
+    (is (= {:status 200
+            :body {:valid false
+                   :message "Endpoint validation failed with status: 500"} }
+           (app {:uri "/endpoints/google.com/config" :request-method :get})))))
+
+(deftest test-unexpected-gateway-status
+  (with-redefs [http/request (fn [_] {:status 500 :body "mocked response"})]
+    (is (= {:status 500
+            :body {:message "Unexpected response status received from gateway: 500", :valid false}}
+           (app {:uri "/endpoints/google.com/config" :request-method :get})))))
+
 (deftest test-validate-fails
   (with-redefs [http/request (fn [_] {:status 401 :body "mocked response"})]
-    (is (= {:status 200
-            :body {:message "Endpoint validation failed with status: 401", :valid false}}
+    (is (= {:status 502
+            :body {:message "Incorrect credentials for gateway", :valid false}}
            (app {:uri "/endpoints/google.com/config" :request-method :get})))))

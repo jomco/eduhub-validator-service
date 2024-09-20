@@ -19,6 +19,7 @@
 (ns nl.surf.eduhub.validator.service.main
   (:gen-class)
   (:require [babashka.http-client :as http]
+            [babashka.json :as json]
             [clojure.string :as str]
             [compojure.core :refer [defroutes GET]]
             [compojure.route :as route]
@@ -34,20 +35,49 @@
 
 (defn validate-endpoint [endpoint-id {:keys [gateway-url gateway-basic-auth ooapi-version] :as _config}]
   {:pre [gateway-url]}
-  (log/info (str "validating endpoint: " endpoint-id " - gateway-url: " gateway-url))
   (try
-    (let [response (http/get (str gateway-url (if (.endsWith gateway-url "/") "" "/") "courses")
-                             {:headers {"x-route" (str "endpoint=" endpoint-id)
-                                        "accept" (str "application/json; version=" ooapi-version)
-                                        "x-envelope-response" "false"}
-                              :basic-auth gateway-basic-auth
-                              :throw false})]
-      (if (= (:status response) 200)
-        {:valid true}
-        {:valid false :message (str "Endpoint validation failed with status: " (:status response))}))
+    (let [opts {:headers {"x-route" (str "endpoint=" endpoint-id)
+                          "accept" (str "application/json; version=" ooapi-version)
+                          "x-envelope-response" "true"}
+                :basic-auth gateway-basic-auth
+                :throw false}
+          url (str gateway-url (if (.endsWith gateway-url "/") "" "/") "courses")
+          {:keys [status body]} (http/get url opts)]
+
+      ;; If the client credentials for the validator are incorrect, the wrap-allowed-clients-checker
+      ;; middleware has already returned 401 forbidden and execution doesn't get here.
+
+      (condp = status
+        http-status/unauthorized
+        ;; If the validator doesn't have the right credentials for the gateway, manifested by a 401 response,
+        ;; we'll return a 502 error and log it.
+        {:status http-status/bad-gateway :body {:valid false
+                                                :message "Incorrect credentials for gateway"}}
+
+        ;; If the gateway returns OK we assume we've gotten a json envelope response and check the response status
+        ;; of the endpoint.
+        http-status/ok
+        (let [envelope        (json/read-str body)
+              envelope-status (get-in envelope [:gateway :endpoints (keyword endpoint-id) :responseCode])]
+          {:status http-status/ok
+           :body   (if (= "200" (str envelope-status))
+                     {:valid true}
+                     ;; If the endpoint denied the gateway's request or otherwise returned a response outside the 200 range
+                     ;; we return 200 ok and return the status of the endpoint and the message of the gateway in our response
+                     {:valid false
+                      :message (str "Endpoint validation failed with status: " envelope-status)})})
+
+        ;; If the gateway returns something else than a 200 or a 401, treat it similar to an error
+        (do
+          (log/error "Unexpected response status received from gateway: " status)
+          {:status http-status/internal-server-error
+           :body   {:valid   false
+                    :message (str "Unexpected response status received from gateway: " status)}})))
     (catch Throwable e
       (log/error e "Exception in validate-endpoint")
-      {:valid false :error true :message (str "Error during validation " (class e) ":" (ex-message e))})))
+      {:status http-status/internal-server-error
+       :body {:valid false
+              :message "Internal error in validator-service"}})))
 
 (defroutes app-routes
   (GET "/endpoints/:endpoint-id/config" [endpoint-id]
@@ -58,11 +88,7 @@
   (fn [req]
     (let [{:keys [validator endpoint-id] :as resp} (app req)]
       (if validator
-        (let [{:keys [error] :as body} (validate-endpoint endpoint-id config)]
-          {:body body
-           :status (if error
-                     http-status/internal-server-error
-                     http-status/ok)})
+        (validate-endpoint endpoint-id config)
         resp))))
 
 (defn start-server [routes]
