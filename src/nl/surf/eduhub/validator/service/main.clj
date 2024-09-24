@@ -1,6 +1,6 @@
 ;; This file is part of eduhub-validator-service
 ;;
-;; Copyright (C) 2022 SURFnet B.V.
+;; Copyright (C) 2024 SURFnet B.V.
 ;;
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU Affero General Public License
@@ -18,31 +18,25 @@
 
 (ns nl.surf.eduhub.validator.service.main
   (:gen-class)
-  (:require [babashka.http-client :as http]
-            [babashka.json :as json]
+  (:require [babashka.json :as json]
             [clojure.string :as str]
-            [compojure.core :refer [defroutes GET]]
-            [compojure.route :as route]
             [clojure.tools.logging :as log]
+            [compojure.core :refer [GET defroutes]]
+            [compojure.route :as route]
             [environ.core :refer [env]]
             [nl.jomco.envopts :as envopts]
             [nl.jomco.http-status-codes :as http-status]
             [nl.surf.eduhub.validator.service.authentication :as auth]
             [nl.surf.eduhub.validator.service.config :as config]
+            [nl.surf.eduhub.validator.service.validate :as validate]
             [ring.adapter.jetty :refer [run-jetty]]
-            [ring.middleware.defaults :refer [wrap-defaults api-defaults]]
+            [ring.middleware.defaults :refer [api-defaults wrap-defaults]]
             [ring.middleware.json :refer [wrap-json-response]]))
 
-(defn validate-endpoint [endpoint-id {:keys [gateway-url gateway-basic-auth ooapi-version] :as _config}]
-  {:pre [gateway-url]}
+(defn validate-endpoint [endpoint-id config]
   (try
-    (let [opts {:headers {"x-route" (str "endpoint=" endpoint-id)
-                          "accept" (str "application/json; version=" ooapi-version)
-                          "x-envelope-response" "true"}
-                :basic-auth gateway-basic-auth
-                :throw false}
-          url (str gateway-url (if (.endsWith gateway-url "/") "" "/") "courses")
-          {:keys [status body]} (http/get url opts)]
+    (let [{:keys [status body]} (validate/validate endpoint-id config)]
+
 
       ;; If the client credentials for the validator are incorrect, the wrap-allowed-clients-checker
       ;; middleware has already returned 401 forbidden and execution doesn't get here.
@@ -91,8 +85,8 @@
         (validate-endpoint endpoint-id config)
         resp))))
 
-(defn start-server [routes]
-  (let [server (run-jetty routes {:port 3002 :join? false})
+(defn start-server [routes {:keys [server-port] :as _config}]
+  (let [server (run-jetty routes {:port server-port :join? false})
         handler ^Runnable (fn [] (.stop server))]
     ;; Add a shutdown hook to stop Jetty on JVM exit (Ctrl+C)
     (.addShutdownHook (Runtime/getRuntime)
@@ -115,4 +109,5 @@
                         (auth/wrap-allowed-clients-checker allowed-client-id-set)
                         (auth/wrap-authentication introspection-endpoint introspection-auth)
                         wrap-json-response
-                        (wrap-defaults api-defaults))))))
+                        (wrap-defaults api-defaults))
+                    config))))

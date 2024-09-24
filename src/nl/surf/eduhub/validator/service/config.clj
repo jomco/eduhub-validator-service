@@ -1,6 +1,6 @@
 ;; This file is part of eduhub-validator-service
 ;;
-;; Copyright (C) 2022 SURFnet B.V.
+;; Copyright (C) 2024 SURFnet B.V.
 ;;
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU Affero General Public License
@@ -36,6 +36,7 @@
                                         :in [:introspection-basic-auth :pass]]
    :surf-conext-introspection-endpoint ["SurfCONEXT introspection endpoint" :str
                                         :in [:introspection-endpoint-url]]
+   :server-port                        ["Starts the app server on this port" :int]
    :ooapi-version                      ["Ooapi version to pass through to gateway" :str
                                         :in [:ooapi-version]]})
 

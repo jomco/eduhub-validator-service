@@ -1,6 +1,6 @@
 ;; This file is part of eduhub-validator-service
 ;;
-;; Copyright (C) 2022 SURFnet B.V.
+;; Copyright (C) 2024 SURFnet B.V.
 ;;
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU Affero General Public License
@@ -23,22 +23,28 @@
            [java.io File]))
 
 (def default-env {:allowed-client-ids "default",
+                  :gateway-basic-auth-user "default",
                   :gateway-basic-auth-pass "default",
                   :gateway-url "default",
                   :ooapi-version "default",
                   :surf-conext-client-id "default",
                   :surf-conext-client-secret "default",
-                  :surf-conext-introspection-endpoint "default"})
+                  :surf-conext-introspection-endpoint "default"
+                  :server-port "3002"})
 
 (def default-expected-value {:allowed-client-ids "default",
                              :gateway-url "default",
                              :ooapi-version "default",
                              :gateway-basic-auth {:pass "default", :user "john200"},
                              :introspection-basic-auth {:pass "default", :user "default"},
-                             :introspection-endpoint-url "default"})
+                             :introspection-endpoint-url "default"
+                             :server-port 3002})
 
 (defn- test-env [env]
-  (config/load-config-from-env (merge default-env env)))
+  (-> default-env
+      (dissoc :gateway-basic-auth-user)
+      (merge env)
+      config/load-config-from-env))
 
 (deftest missing-secret
   (is (= {:gateway-basic-auth-user "missing"}

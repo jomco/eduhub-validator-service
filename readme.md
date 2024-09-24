@@ -26,6 +26,7 @@ SURF_CONEXT_CLIENT_SECRET           SurfCONEXT client secret for validation serv
 SURF_CONEXT_INTROSPECTION_ENDPOINT  SurfCONEXT introspection endpoint
 ALLOWED_CLIENT_IDS                  Comma separated list of allowed SurfCONEXT client ids. 
 OOAPI_VERSION                       Ooapi version to pass through to gateway
+SERVER_PORT                         Starts the app server on this port
 ```
 
 ## Build
