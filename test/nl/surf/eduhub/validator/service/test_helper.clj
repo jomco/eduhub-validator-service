@@ -34,15 +34,17 @@
 
 (defn make-recorder [dir http-handler]
   (let [mycounter (atom 0)]
-    (fn [request]
-      (let [response  (http-handler request)
+    (fn recorder [request]
+      (let [response  (-> request
+                          http-handler
+                          (select-keys [:status :body :headers]))
             counter   (swap! mycounter inc)
             file-name (str dir "/" counter ".edn")]
         (io/make-parents file-name)
-        (with-open [w (io/writer file-name)]
-          (let [safe-headers (dissoc (:headers request) "Authorization" "Cookie")]
-            (pprint {:request  (assoc (select-keys request [:method :url :body])
-                                 :headers safe-headers)
-                     :response (select-keys response [:status :body :headers])}
-                    w)))
-        (select-keys response [:status :body :headers])))))
+        (with-open [writer (io/writer file-name)]
+          (let [safe-headers (dissoc (:headers request) "Authorization" "Cookie")
+                safe-request (-> request
+                                 (select-keys [:method :url :body])
+                                 (assoc :headers safe-headers))]
+            (pprint {:request  safe-request :response response} writer)))
+        response))))
