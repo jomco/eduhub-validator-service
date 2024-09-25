@@ -40,7 +40,7 @@
         vcr (if (.exists (io/file dirname))
               (test-helper/make-playbacker dirname)
               (test-helper/make-recorder dirname http-handler))]
-    (with-redefs [http/request (fn [req] (vcr req))]
+    (with-redefs [http/request (fn vcr [req] (vcr req))]
       (let [opts {:basic-auth    (:gateway-basic-auth test-config)
                   :base-url      (:gateway-url test-config)
                   :ooapi-version 5

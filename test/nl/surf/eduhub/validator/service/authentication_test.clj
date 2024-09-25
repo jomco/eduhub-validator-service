@@ -59,7 +59,7 @@
      :body {:active false}}))
 
 (defn- make-handler [introspection-endpoint basic-auth allowed-client-id-set]
-  (-> (fn [req]
+  (-> (fn auth-handler [req]
         (let [body {:client (:client-id req)}]
           {:status http-status/ok
            :body   body}))

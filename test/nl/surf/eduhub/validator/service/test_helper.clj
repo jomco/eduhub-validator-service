@@ -24,7 +24,7 @@
 
 (defn make-playbacker [dir]
   (let [count-atom (atom 0)]
-    (fn [_req]
+    (fn playbacker [_req]
       (let [i                (swap! count-atom inc)
             fname            (str dir "/" i ".edn")]
         (if (.exists (io/file fname))
