@@ -1,6 +1,6 @@
 ;; This file is part of eduhub-validator-service
 ;;
-;; Copyright (C) 2022 SURFnet B.V.
+;; Copyright (C) 2024 SURFnet B.V.
 ;;
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU Affero General Public License
@@ -59,7 +59,7 @@
      :body {:active false}}))
 
 (defn- make-handler [introspection-endpoint basic-auth allowed-client-id-set]
-  (-> (fn [req]
+  (-> (fn auth-handler [req]
         (let [body {:client (:client-id req)}]
           {:status http-status/ok
            :body   body}))

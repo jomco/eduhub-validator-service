@@ -1,6 +1,6 @@
 ;; This file is part of eduhub-validator-service
 ;;
-;; Copyright (C) 2022 SURFnet B.V.
+;; Copyright (C) 2024 SURFnet B.V.
 ;;
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU Affero General Public License
@@ -84,7 +84,7 @@
   Returns nil unless the authentication service returns a response with a 200 code."
   [introspection-endpoint auth]
   {:pre [introspection-endpoint auth]}
-  (fn [token]
+  (fn token-authenticator [token]
     (authenticate-token introspection-endpoint
                         token
                         auth)))
@@ -112,14 +112,14 @@
   ; auth looks like {:user client-id :pass client-secret}
   [f introspection-endpoint auth]
   (let [authenticator (memo/ttl (make-token-authenticator introspection-endpoint auth) :ttl/threshold 60000)] ; 1 minute
-    (fn [request]
+    (fn authentication [request]
       (if-let [token (bearer-token request)]
         (handle-request-with-token request f (authenticator token))
         (f request)))))
 
 (defn wrap-allowed-clients-checker [f allowed-client-id-set]
   {:pre [(set? allowed-client-id-set)]}
-  (fn [{:keys [client-id] :as request}]
+  (fn allowed-clients-checker [{:keys [client-id] :as request}]
     (if (and client-id (allowed-client-id-set client-id))
       (f request)
       {:body (if client-id "Unknown client id" "No client-id found")

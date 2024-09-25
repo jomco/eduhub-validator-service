@@ -30,8 +30,9 @@ jobs:
 
     - name: Run tests
       env:
-        GATEWAY_ROOT_URL: ${{ secrets.GATEWAY_ROOT_URL }}
+        GATEWAY_URL: https://gateway.test.surfeduhub.nl/
         GATEWAY_BASIC_AUTH_USER: ${{ secrets.GATEWAY_BASIC_AUTH_USER }}
         GATEWAY_BASIC_AUTH_PASS: ${{ secrets.GATEWAY_BASIC_AUTH_PASS }}
+        SERVER_PORT: 3002
 
       run: bin/clojure -M:test
