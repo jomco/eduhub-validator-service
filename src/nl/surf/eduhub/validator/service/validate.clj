@@ -37,14 +37,16 @@
 (defn- temp-file [fname ext]
   (let [tmpfile (File/createTempFile fname ext)]
     (.deleteOnExit tmpfile)
-    (.getAbsolutePath tmpfile)))
+    tmpfile))
 
 (defn validate-endpoint
   "Returns the HTML validation report as a String."
   [endpoint-id {:keys [basic-auth ooapi-version base-url profile] :as opts}]
   {:pre [endpoint-id basic-auth ooapi-version base-url profile]}
-  (let [report-path       (temp-file "report" ".html")
-        observations-path (temp-file "observations" ".edn")
+  (let [report-file       (temp-file "report" ".html")
+        report-path       (.getAbsolutePath report-file)
+        observations-file (temp-file "observations" ".edn")
+        observations-path (.getAbsolutePath observations-file)
         defaults {:bearer-token nil,
                   :no-report? false,
                   :max-total-requests 5,
@@ -56,5 +58,9 @@
                   :max-requests-per-operation ##Inf,
                   :observations-path observations-path,
                   :profile profile}]
-    (apie/main (merge defaults opts))
-    (slurp report-path)))
+    (try
+      (apie/main (merge defaults opts))
+      (slurp report-path)
+      (finally
+        (.delete observations-file)
+        (.delete report-file)))))
