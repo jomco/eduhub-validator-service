@@ -33,18 +33,15 @@
             [ring.middleware.defaults :refer [api-defaults wrap-defaults]]
             [ring.middleware.json :refer [wrap-json-response]]))
 
-(defn validate-endpoint [endpoint-id config]
+(defn check-endpoint [endpoint-id config]
   (try
-    (let [{:keys [status body]} (validate/validate endpoint-id config)]
-
-
+    (let [{:keys [status body]} (validate/check-endpoint endpoint-id config)]
       ;; If the client credentials for the validator are incorrect, the wrap-allowed-clients-checker
       ;; middleware has already returned 401 forbidden and execution doesn't get here.
-
       (condp = status
-        http-status/unauthorized
         ;; If the validator doesn't have the right credentials for the gateway, manifested by a 401 response,
         ;; we'll return a 502 error and log it.
+        http-status/unauthorized
         {:status http-status/bad-gateway :body {:valid false
                                                 :message "Incorrect credentials for gateway"}}
 
@@ -82,7 +79,7 @@
   (fn [req]
     (let [{:keys [validator endpoint-id] :as resp} (app req)]
       (if validator
-        (validate-endpoint endpoint-id config)
+        (check-endpoint endpoint-id config)
         resp))))
 
 (defn start-server [routes {:keys [server-port] :as _config}]

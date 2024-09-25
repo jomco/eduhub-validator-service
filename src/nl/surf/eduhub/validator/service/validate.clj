@@ -22,7 +22,7 @@
             [nl.jomco.apie.main :as apie])
   (:import [java.io File]))
 
-(defn validate
+(defn check-endpoint
   "Performs a synchronous validation via the eduhub-validator"
   [endpoint-id {:keys [gateway-url gateway-basic-auth ooapi-version] :as _config}]
   (let [url (str gateway-url (if (.endsWith gateway-url "/") "" "/") "courses")
@@ -39,17 +39,17 @@
     (.deleteOnExit tmpfile)
     (.getAbsolutePath tmpfile)))
 
-(defn html-validation-report
+(defn validate-endpoint
   "Returns the HTML validation report as a String."
-  [{:keys [basic-auth ooapi-version base-url endpoint profile] :as opts}]
-  {:pre [basic-auth ooapi-version base-url endpoint profile]}
+  [endpoint-id {:keys [basic-auth ooapi-version base-url profile] :as opts}]
+  {:pre [endpoint-id basic-auth ooapi-version base-url profile]}
   (let [report-path       (temp-file "report" ".html")
         observations-path (temp-file "observations" ".edn")
         defaults {:bearer-token nil,
                   :no-report? false,
                   :max-total-requests 5,
                   :report-path report-path,
-                  :headers {:x-route (str "endpoint=" endpoint),
+                  :headers {:x-route (str "endpoint=" endpoint-id),
                             :accept (str "application/json; version=" ooapi-version),
                             :x-envelope-response "false"},
                   :no-spider? false,

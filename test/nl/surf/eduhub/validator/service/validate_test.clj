@@ -43,8 +43,7 @@
     (with-redefs [http/request (fn [req] (vcr req))]
       (let [opts {:basic-auth    (:gateway-basic-auth test-config)
                   :base-url      (:gateway-url test-config)
-                  :endpoint      "demo04.test.surfeduhub.nl"
                   :ooapi-version 5
                   :profile       "rio"}]
-        (is (str/includes? (validate/html-validation-report opts)
+        (is (str/includes? (validate/validate-endpoint "demo04.test.surfeduhub.nl" opts)
                            "5 observations have no issues"))))))
