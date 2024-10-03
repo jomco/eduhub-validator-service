@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.2.xsd"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.2.xsd
+                                  https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.2.xsd">
+
+    <suppress>
+        <cvssBelow>5.0</cvssBelow>
+        <cve>CVE-2023-46120</cve>
+        <!-- Related to RabbitMQ. We don't use RabbitMQ, nor do we let untrusted users add random jobs. -->
+    </suppress>
+
+</suppressions>

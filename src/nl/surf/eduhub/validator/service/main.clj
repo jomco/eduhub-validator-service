@@ -18,69 +18,10 @@
 
 (ns nl.surf.eduhub.validator.service.main
   (:gen-class)
-  (:require [babashka.json :as json]
-            [clojure.string :as str]
-            [clojure.tools.logging :as log]
-            [compojure.core :refer [GET defroutes]]
-            [compojure.route :as route]
-            [environ.core :refer [env]]
-            [nl.jomco.envopts :as envopts]
-            [nl.jomco.http-status-codes :as http-status]
-            [nl.surf.eduhub.validator.service.authentication :as auth]
+  (:require [environ.core :refer [env]]
+            [nl.surf.eduhub.validator.service.api :as api]
             [nl.surf.eduhub.validator.service.config :as config]
-            [nl.surf.eduhub.validator.service.validate :as validate]
-            [ring.adapter.jetty :refer [run-jetty]]
-            [ring.middleware.defaults :refer [api-defaults wrap-defaults]]
-            [ring.middleware.json :refer [wrap-json-response]]))
-
-(defn check-endpoint [endpoint-id config]
-  (try
-    (let [{:keys [status body]} (validate/check-endpoint endpoint-id config)]
-      ;; If the client credentials for the validator are incorrect, the wrap-allowed-clients-checker
-      ;; middleware has already returned 401 forbidden and execution doesn't get here.
-      (condp = status
-        ;; If the validator doesn't have the right credentials for the gateway, manifested by a 401 response,
-        ;; we'll return a 502 error and log it.
-        http-status/unauthorized
-        {:status http-status/bad-gateway :body {:valid false
-                                                :message "Incorrect credentials for gateway"}}
-
-        ;; If the gateway returns OK we assume we've gotten a json envelope response and check the response status
-        ;; of the endpoint.
-        http-status/ok
-        (let [envelope        (json/read-str body)
-              envelope-status (get-in envelope [:gateway :endpoints (keyword endpoint-id) :responseCode])]
-          {:status http-status/ok
-           :body   (if (= "200" (str envelope-status))
-                     {:valid true}
-                     ;; If the endpoint denied the gateway's request or otherwise returned a response outside the 200 range
-                     ;; we return 200 ok and return the status of the endpoint and the message of the gateway in our response
-                     {:valid false
-                      :message (str "Endpoint validation failed with status: " envelope-status)})})
-
-        ;; If the gateway returns something else than a 200 or a 401, treat it similar to an error
-        (do
-          (log/error "Unexpected response status received from gateway: " status)
-          {:status http-status/internal-server-error
-           :body   {:valid   false
-                    :message (str "Unexpected response status received from gateway: " status)}})))
-    (catch Throwable e
-      (log/error e "Exception in validate-endpoint")
-      {:status http-status/internal-server-error
-       :body {:valid false
-              :message "Internal error in validator-service"}})))
-
-(defroutes app-routes
-  (GET "/endpoints/:endpoint-id/config" [endpoint-id]
-    (fn [_] {:validator true :endpoint-id endpoint-id}))
-  (route/not-found "Not Found"))
-
-(defn wrap-validator [app config]
-  (fn [req]
-    (let [{:keys [validator endpoint-id] :as resp} (app req)]
-      (if validator
-        (check-endpoint endpoint-id config)
-        resp))))
+            [ring.adapter.jetty :refer [run-jetty]]))
 
 (defn start-server [routes {:keys [server-port] :as _config}]
   (let [server (run-jetty routes {:port server-port :join? false})
@@ -91,20 +32,7 @@
     server))
 
 (defn -main [& _]
-  (let [[config errs] (config/load-config-from-env env)]
-    (when errs
-      (.println *err* "Error in environment configuration")
-      (.println *err* (envopts/errs-description errs))
-      (.println *err* "Available environment vars:")
-      (.println *err* (envopts/specs-description config/opt-specs))
-      (System/exit 1))
-    (let [introspection-endpoint (:introspection-endpoint-url config)
-          introspection-auth     (:introspection-basic-auth config)
-          allowed-client-id-set  (set (str/split (:allowed-client-ids config) #","))]
-      (start-server (-> app-routes
-                        (wrap-validator config)
-                        (auth/wrap-allowed-clients-checker allowed-client-id-set)
-                        (auth/wrap-authentication introspection-endpoint introspection-auth)
-                        wrap-json-response
-                        (wrap-defaults api-defaults))
-                    config))))
+  (let [config (config/validate-and-load-config env)]
+    ;; set config as global var (read-only) so that the workers can access it
+    (reset! config/config-atom config)
+    (start-server (api/compose-app config :auth-enabled) config)))

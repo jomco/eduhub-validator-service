@@ -63,8 +63,8 @@
         (let [body {:client (:client-id req)}]
           {:status http-status/ok
            :body   body}))
-      (authentication/wrap-allowed-clients-checker allowed-client-id-set)
-      (authentication/wrap-authentication introspection-endpoint basic-auth)))
+      (authentication/wrap-allowed-clients-checker allowed-client-id-set {:auth-enabled true})
+      (authentication/wrap-authentication introspection-endpoint basic-auth {:auth-enabled true})))
 
 (deftest token-validator
   ;; This binds the *dynamic* http client in clj-http.client

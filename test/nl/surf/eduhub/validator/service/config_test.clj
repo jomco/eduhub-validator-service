@@ -38,7 +38,8 @@
                              :gateway-basic-auth {:pass "default", :user "john200"},
                              :introspection-basic-auth {:pass "default", :user "default"},
                              :introspection-endpoint-url "default"
-                             :server-port 3002})
+                             :server-port 3002
+                             :redis-conn {:spec {:uri "redis://localhost"}}})
 
 (defn- test-env [env]
   (-> default-env

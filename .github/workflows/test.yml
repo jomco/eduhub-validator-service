@@ -28,6 +28,11 @@ jobs:
     - name: Install clj runtime
       run: .github/workflows/install-binaries.sh
 
+    - name: Start Redis
+      uses: supercharge/redis-github-action@1.4.0
+      with:
+        redis-version: 6.2
+
     - name: Run tests
       env:
         GATEWAY_URL: https://gateway.test.surfeduhub.nl/

@@ -36,9 +36,15 @@
                                         :in [:introspection-basic-auth :pass]]
    :surf-conext-introspection-endpoint ["SurfCONEXT introspection endpoint" :str
                                         :in [:introspection-endpoint-url]]
+   :redis-uri                          ["URI to redis" :str
+                                        :default "redis://localhost"
+                                        :in [:redis-conn :spec :uri]]
    :server-port                        ["Starts the app server on this port" :int]
    :ooapi-version                      ["Ooapi version to pass through to gateway" :str
                                         :in [:ooapi-version]]})
+
+;; There seems to be no way to pass the config to the worker except via a global var
+(def config-atom (atom nil))
 
 (defn- file-secret-loader-reducer [env-map value-key]
   (let [file-key (keyword (str (name value-key) "-file"))
@@ -68,3 +74,13 @@
 (defn load-config-from-env [env-map]
   (-> (reduce file-secret-loader-reducer env-map env-keys-with-alternate-file-secret)
       (envopts/opts opt-specs)))
+
+(defn validate-and-load-config [env]
+  (let [[config errs] (load-config-from-env env)]
+    (when errs
+      (.println *err* "Error in environment configuration")
+      (.println *err* (envopts/errs-description errs))
+      (.println *err* "Available environment vars:")
+      (.println *err* (envopts/specs-description opt-specs))
+      (System/exit 1))
+    config))

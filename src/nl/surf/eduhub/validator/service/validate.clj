@@ -25,6 +25,7 @@
 (defn check-endpoint
   "Performs a synchronous validation via the eduhub-validator"
   [endpoint-id {:keys [gateway-url gateway-basic-auth ooapi-version] :as _config}]
+  {:pre [gateway-url]}
   (let [url (str gateway-url (if (.endsWith gateway-url "/") "" "/") "courses")
         opts {:headers {"x-route" (str "endpoint=" endpoint-id)
                         "accept" (str "application/json; version=" ooapi-version)
@@ -32,7 +33,6 @@
               :basic-auth gateway-basic-auth
               :throw false}]
     (http/get url opts)))
-
 
 (defn- temp-file [fname ext]
   (let [tmpfile (File/createTempFile fname ext)]

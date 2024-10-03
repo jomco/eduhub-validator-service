@@ -19,8 +19,16 @@
 (ns nl.surf.eduhub.validator.service.test-helper
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
+            [clojure.test :refer [is]]
             [clojure.pprint :refer [pprint]])
   (:import [java.io PushbackReader]))
+
+(defn validate-timestamp [m k]
+  (let [ts (k m)]
+    (is (string? ts) (str k " value must be set in " (prn-str m)))
+    (when (string? ts)
+      (re-matches #"\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z" ts)))
+  (dissoc m k))
 
 (defn make-playbacker [dir]
   (let [count-atom (atom 0)]
