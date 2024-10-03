@@ -32,6 +32,8 @@
        :body   {:valid   false
                 :message error-msg}})))
 
+;; The endpoint checker from phase 1. This connects to an endpoint via the gateway and checks if it receives
+;; a valid response.
 (defn check-endpoint [endpoint-id config]
   (try
     (let [{:keys [status body]} (validate/check-endpoint endpoint-id config)]

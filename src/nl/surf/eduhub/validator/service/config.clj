@@ -40,6 +40,9 @@
                                         :default "redis://localhost"
                                         :in [:redis-conn :spec :uri]]
    :server-port                        ["Starts the app server on this port" :int]
+   :job-status-expiry-seconds          ["Number of seconds before job status in Redis expires" :str
+                                        :default (* 3600 24 14)
+                                        :in [:expiry-seconds]]
    :ooapi-version                      ["Ooapi version to pass through to gateway" :str
                                         :in [:ooapi-version]]})
 

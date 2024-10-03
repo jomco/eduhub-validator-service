@@ -5,9 +5,12 @@
             [nl.surf.eduhub.validator.service.jobs.status :as status]
             [nl.surf.eduhub.validator.service.validate :as validate]))
 
+;; A worker thread running in the background
 (def worker (w/start (assoc w/default-opts
                        :broker (broker/new-consumer broker/default-opts))))
 
+;; Called by the workers. Runs the validate-endpoint function
+;; and updates the values in the job status.
 ;; opts should contain: basic-auth ooapi-version base-url profile
 (defn validate-endpoint [endpoint-id uuid opts]
   (let [{:keys [redis-conn]} @config/config-atom]

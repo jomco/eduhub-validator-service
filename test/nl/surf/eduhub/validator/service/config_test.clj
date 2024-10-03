@@ -39,7 +39,8 @@
                              :introspection-basic-auth {:pass "default", :user "default"},
                              :introspection-endpoint-url "default"
                              :server-port 3002
-                             :redis-conn {:spec {:uri "redis://localhost"}}})
+                             :redis-conn {:spec {:uri "redis://localhost"}}
+                             :expiry-seconds 1209600})
 
 (defn- test-env [env]
   (-> default-env

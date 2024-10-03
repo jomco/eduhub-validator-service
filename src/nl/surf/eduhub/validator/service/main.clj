@@ -23,6 +23,7 @@
             [nl.surf.eduhub.validator.service.config :as config]
             [ring.adapter.jetty :refer [run-jetty]]))
 
+;; Starts a Jetty server on given port.
 (defn start-server [routes {:keys [server-port] :as _config}]
   (let [server (run-jetty routes {:port server-port :join? false})
         handler ^Runnable (fn [] (.stop server))]

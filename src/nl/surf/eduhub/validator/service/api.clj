@@ -37,30 +37,34 @@
              {:validator true :endpoint-id endpoint-id :profile profile})
            (route/not-found "Not Found"))
 
-(defn wrap-response-handler [app activate-handler? handler]
+;; Many response handlers have the same structure - with this function they can be written inline.
+;; `activate-handler?` is a function that takes a request and returns a boolean which determines if
+;; the current handler should be activated (or skipped).
+;; `response-handler` takes an intermediate response and processes it into the next step.
+(defn wrap-response-handler [app activate-handler? response-handler]
   (fn [req]
     (let [resp (app req)]
       (if (activate-handler? resp)
-        (handler resp)
+        (response-handler resp)
         resp))))
 
-(defn job-status-handler [{:keys [redis-conn] :as _config}]
+;; Turn the contents of a job status (stored in redis) into an http response.
+(defn- job-status-handler [{:keys [redis-conn] :as _config}]
   (fn [resp]
     (let [job-status (status/load-status redis-conn (:uuid resp))]
       (if (empty? job-status)
         {:status http-status/not-found}
         {:status http-status/ok :body job-status}))))
 
-(defn compose-app [config auth-enabled]
-  (let [introspection-endpoint (:introspection-endpoint-url config)
-        introspection-auth     (:introspection-basic-auth config)
-        allowed-client-id-set  (set (str/split (:allowed-client-ids config) #","))
-        opts                   {:auth-enabled (boolean auth-enabled)}]
+;; Compose the app from the routes and the wrappers. Authentication can be disabled for testing purposes.
+(defn compose-app [{:keys [introspection-endpoint-url introspection-basic-auth allowed-client-ids] :as config} auth-enabled]
+  (let [allowed-client-id-set  (set (str/split allowed-client-ids #","))
+        auth-opts              {:auth-enabled (boolean auth-enabled)}]
     (-> app-routes
-        (wrap-response-handler :checker #(checker/check-endpoint (:endpoint-id %) config))
-        (wrap-response-handler :validator #(jobs-client/enqueue-endpoint (:endpoint-id %) (:profile %)))
+        (wrap-response-handler :checker    #(checker/check-endpoint (:endpoint-id %) config))
+        (wrap-response-handler :validator  #(jobs-client/enqueue-validate-endpoint (:endpoint-id %) (:profile %) config))
         (wrap-response-handler :load-status (job-status-handler config))
-        (auth/wrap-allowed-clients-checker allowed-client-id-set opts)
-        (auth/wrap-authentication introspection-endpoint introspection-auth opts)
+        (auth/wrap-allowed-clients-checker allowed-client-id-set auth-opts)
+        (auth/wrap-authentication introspection-endpoint-url introspection-basic-auth auth-opts)
         wrap-json-response
         (wrap-defaults api-defaults))))

@@ -6,30 +6,23 @@
 
 (def job-status "job-status")
 
-(defn expires [redis-conn uuid expires-in-seconds]
-  (car/wcar redis-conn (car/expire (status-key uuid) expires-in-seconds)))
-
-(defn set-status [redis-conn uuid new-value]
-  (car/wcar redis-conn (car/hset (status-key uuid) job-status new-value (str new-value "-at") (System/currentTimeMillis))))
-
-(defn set-key-pair [redis-conn uuid key-name value]
-  (car/wcar redis-conn (car/hset (status-key uuid) key-name value)))
-
+;; Updates the status of the job status entry of job `uuid` to `new-status`.
+;; Also sets a timestamp named after the new status (e.g. finished-at)
+;; Also sets any values in `key-value-map` in the redis hash.
+;; If `expires-in-seconds` is set, (re)sets the expiry.
 (defn set-status-fields [redis-conn uuid new-status key-value-map expires-in-seconds]
-  (let [x (assoc key-value-map
+  (let [v (assoc key-value-map
             job-status new-status
-            (str new-status "-at") (System/currentTimeMillis))
+            (str new-status "-at") (-> (System/currentTimeMillis)
+                                       Instant/ofEpochMilli
+                                       str))
         key (status-key uuid)]
-    (car/wcar redis-conn (car/hmset* key x))
+    (car/wcar redis-conn (car/hmset* key v))
     (when expires-in-seconds
       (car/wcar redis-conn (car/expire key expires-in-seconds)))))
 
+;; Loads the job status as a clojure map for the job with given uuid.
 (defn load-status [redis-conn uuid]
   (let [result (car/wcar redis-conn (car/hgetall (status-key uuid)))]
     (when-not (empty? result)
-      (into {}
-            (map (fn [[k v]]
-                   (if (and (string? k) (.endsWith k "-at"))
-                     [k (str (Instant/ofEpochMilli (Long/parseLong v)))]
-                     [k v]))
-                 (apply hash-map result))))))
+      (into {} (apply hash-map result)))))

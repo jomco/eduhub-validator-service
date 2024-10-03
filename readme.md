@@ -27,6 +27,7 @@ SURF_CONEXT_INTROSPECTION_ENDPOINT  SurfCONEXT introspection endpoint
 ALLOWED_CLIENT_IDS                  Comma separated list of allowed SurfCONEXT client ids. 
 OOAPI_VERSION                       Ooapi version to pass through to gateway
 SERVER_PORT                         Starts the app server on this port
+JOB_STATUS_EXPIRY_SECONDS           Number of seconds before job status in Redis expires
 ```
 
 ## Build
