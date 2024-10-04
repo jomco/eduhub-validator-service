@@ -1,8 +1,5 @@
 (ns nl.surf.eduhub.validator.service.jobs.worker
   (:require [clojure.tools.logging :as log]
-            [goose.brokers.redis.broker :as broker]
-            [goose.worker :as w]
-            [nl.surf.eduhub.validator.service.config :as config]
             [nl.surf.eduhub.validator.service.jobs.status :as status]
             [nl.surf.eduhub.validator.service.validate :as validate]))
 

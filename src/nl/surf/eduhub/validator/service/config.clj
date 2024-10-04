@@ -32,7 +32,7 @@
                                         :in [:allowed-client-ids]]
    :max-total-requests                 ["Maximum number of requests that validator is allowed to make before raising an error" :int
                                         :default 10000
-                                        :in :max-total-requests]
+                                        :in [:max-total-requests]]
    :surf-conext-client-id              ["SurfCONEXT client id for validation service" :str
                                         :in [:introspection-basic-auth :user]]
    :surf-conext-client-secret          ["SurfCONEXT client secret for validation service" :str
@@ -43,7 +43,7 @@
                                         :default "redis://localhost"
                                         :in [:redis-conn :spec :uri]]
    :server-port                        ["Starts the app server on this port" :int]
-   :job-status-expiry-seconds          ["Number of seconds before job status in Redis expires" :str
+   :job-status-expiry-seconds          ["Number of seconds before job status in Redis expires" :int
                                         :default (* 3600 24 14)
                                         :in [:expiry-seconds]]
    :ooapi-version                      ["Ooapi version to pass through to gateway" :str

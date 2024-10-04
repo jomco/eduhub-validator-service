@@ -26,7 +26,7 @@
                   :gateway-basic-auth-user "default",
                   :gateway-basic-auth-pass "default",
                   :gateway-url "https://gateway.test.surfeduhub.nl/",
-                  :max-total-requests 5,
+                  :max-total-requests "5",
                   :ooapi-version "default",
                   :surf-conext-client-id "default",
                   :surf-conext-client-secret "default",

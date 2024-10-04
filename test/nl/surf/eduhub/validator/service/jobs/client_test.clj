@@ -24,14 +24,14 @@
     (is (= http-status/ok status))
     body))
 
-(defn- pop-queue [atm]
+(defn- pop-queue! [atm]
   (let [old-val @atm]
     (when-not (empty? old-val)
       (let [item    (peek old-val)
             new-val (pop old-val)]
         (if (compare-and-set! atm old-val new-val)
           item
-          (pop-queue atm))))))
+          (pop-queue! atm))))))
 
 (deftest test-queue
   (testing "initial call to api"
@@ -63,7 +63,7 @@
               ;; mock http/request
               (with-redefs [http/request (fn wrap-vcr [req] (vcr req))]
                 ;; run worker
-                (let [[fname & args] (pop-queue jobs-atom)]
+                (let [[fname & args] (pop-queue! jobs-atom)]
                   (apply (resolve fname) args))
 
                 (let [body (-> (make-status-call uuid)
