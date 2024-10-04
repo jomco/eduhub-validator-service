@@ -19,6 +19,8 @@
 (ns nl.surf.eduhub.validator.service.main
   (:gen-class)
   (:require [environ.core :refer [env]]
+            [goose.brokers.redis.broker :as broker]
+            [goose.worker :as w]
             [nl.surf.eduhub.validator.service.api :as api]
             [nl.surf.eduhub.validator.service.config :as config]
             [ring.adapter.jetty :refer [run-jetty]]))
@@ -35,5 +37,9 @@
 (defn -main [& _]
   (let [config (config/validate-and-load-config env)]
     ;; set config as global var (read-only) so that the workers can access it
-    (reset! config/config-atom config)
+    (w/start (assoc w/default-opts
+               :broker (broker/new-consumer broker/default-opts)
+               :middleware (fn [next]
+                             (fn [opts job]
+                               (next (assoc opts :config config) job)))))
     (start-server (api/compose-app config :auth-enabled) config)))

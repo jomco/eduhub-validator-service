@@ -49,9 +49,6 @@
    :ooapi-version                      ["Ooapi version to pass through to gateway" :str
                                         :in [:ooapi-version]]})
 
-;; There seems to be no way to pass the config to the worker except via a global var
-(def config-atom (atom nil))
-
 (defn- file-secret-loader-reducer [env-map value-key]
   (let [file-key (keyword (str (name value-key) "-file"))
         path (file-key env-map)]

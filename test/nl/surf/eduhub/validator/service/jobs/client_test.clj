@@ -36,9 +36,7 @@
 
 (deftest test-queue
   (testing "initial call to api"
-    (reset! config/config-atom test-config)
     ;; mock c/perform-async
-    ;; mock http/request
     (let [jobs-atom (atom [])
           dirname   "test/fixtures/validate_correct"
           vcr       (test-helper/make-playbacker dirname)]
@@ -64,6 +62,7 @@
 
             ;; run the first job in the queue
             (testing "run worker"
+              ;; mock http/request
               (with-redefs [http/request (fn wrap-vcr [req] (vcr req))]
                 ;; run worker
                 (let [[fname & args] (pop-queue jobs-atom)]
