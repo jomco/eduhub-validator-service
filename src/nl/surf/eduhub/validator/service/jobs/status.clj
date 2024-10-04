@@ -2,7 +2,7 @@
   (:require [taoensso.carmine :as car])
   (:import [java.time Instant]))
 
-(defn status-key [uuid] (str "job-status:" uuid))
+(defn status-key [uuid] (str "validation:" uuid))
 
 (def job-status "job-status")
 
