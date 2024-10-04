@@ -30,6 +30,9 @@
                                         :in [:gateway-basic-auth :pass]]
    :allowed-client-ids                 ["Comma separated list of allowed SurfCONEXT client ids." :str
                                         :in [:allowed-client-ids]]
+   :max-total-requests                 ["Maximum number of requests that validator is allowed to make before raising an error" :int
+                                        :default 10000
+                                        :in :max-total-requests]
    :surf-conext-client-id              ["SurfCONEXT client id for validation service" :str
                                         :in [:introspection-basic-auth :user]]
    :surf-conext-client-secret          ["SurfCONEXT client secret for validation service" :str

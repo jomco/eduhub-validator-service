@@ -15,13 +15,15 @@
                    :retry-opts (assoc retry/default-opts :error-handler-fn-sym `job-error-handler)))
 
 ;; Enqueue the validate-endpoint call in the worker queue.
-(defn enqueue-validate-endpoint [endpoint-id profile {:keys [redis-conn] :as config}]
+(defn enqueue-validate-endpoint
+  [endpoint-id profile {:keys [redis-conn gateway-basic-auth gateway-url ooapi-version max-total-requests] :as _config}]
   (let [uuid (str (UUID/randomUUID))
         prof (or profile "rio")
-        opts {:basic-auth    (:gateway-basic-auth config)
-              :base-url      (:gateway-url config)
-              :ooapi-version (:ooapi-version config)
-              :profile       prof}]
+        opts {:basic-auth         gateway-basic-auth
+              :base-url           gateway-url
+              :max-total-requests max-total-requests
+              :ooapi-version      ooapi-version
+              :profile            prof}]
     (status/set-status-fields redis-conn uuid "pending" {:endpoint-id endpoint-id, :profile prof} nil)
     (c/perform-async client-opts `worker/validate-endpoint endpoint-id uuid opts)
     {:status 200 :body {:job-status "pending" :uuid uuid}}))

@@ -26,6 +26,7 @@
                   :gateway-basic-auth-user "default",
                   :gateway-basic-auth-pass "default",
                   :gateway-url "https://gateway.test.surfeduhub.nl/",
+                  :max-total-requests 5,
                   :ooapi-version "default",
                   :surf-conext-client-id "default",
                   :surf-conext-client-secret "default",
@@ -38,6 +39,7 @@
                              :gateway-basic-auth {:pass "default", :user "john200"},
                              :introspection-basic-auth {:pass "default", :user "default"},
                              :introspection-endpoint-url "default"
+                             :max-total-requests 5,
                              :server-port 3002
                              :redis-conn {:spec {:uri "redis://localhost"}}
                              :expiry-seconds 1209600})

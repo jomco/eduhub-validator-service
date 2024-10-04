@@ -44,7 +44,7 @@
 ;; Returns the generated HTML report.
 (defn validate-endpoint
   "Returns the HTML validation report as a String."
-  [endpoint-id {:keys [basic-auth ooapi-version base-url profile] :as opts}]
+  [endpoint-id {:keys [basic-auth ooapi-version max-total-requests base-url profile] :as opts}]
   {:pre [endpoint-id basic-auth ooapi-version base-url profile]}
   (let [report-file       (temp-file "report" ".html")
         report-path       (.getAbsolutePath report-file)
@@ -52,7 +52,7 @@
         observations-path (.getAbsolutePath observations-file)
         defaults {:bearer-token nil,
                   :no-report? false,
-                  :max-total-requests 5,                    ; TODO should be configurable
+                  :max-total-requests max-total-requests,
                   :report-path report-path,
                   :headers {:x-route (str "endpoint=" endpoint-id),
                             :accept (str "application/json; version=" ooapi-version),

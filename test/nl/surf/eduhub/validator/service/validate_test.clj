@@ -37,13 +37,15 @@
 (deftest test-validate-correct
   (let [dirname "test/fixtures/validate_correct"
         http-handler http/request
+        {:keys [gateway-basic-auth gateway-url max-total-requests]} test-config
         vcr (if (.exists (io/file dirname))
               (test-helper/make-playbacker dirname)
               (test-helper/make-recorder dirname http-handler))]
     (with-redefs [http/request (fn wrap-vcr [req] (vcr req))]
-      (let [opts {:basic-auth    (:gateway-basic-auth test-config)
-                  :base-url      (:gateway-url test-config)
-                  :ooapi-version 5
+      (let [opts {:basic-auth         gateway-basic-auth
+                  :base-url           gateway-url
+                  :max-total-requests max-total-requests
+                  :ooapi-version      5
                   :profile       "rio"}]
         (is (str/includes? (validate/validate-endpoint "demo04.test.surfeduhub.nl" opts)
                            "5 observations have no issues"))))))
