@@ -15,7 +15,7 @@
                    :retry-opts (assoc retry/default-opts :error-handler-fn-sym `job-error-handler)))
 
 ;; Enqueue the validate-endpoint call in the worker queue.
-(defn enqueue-validate-endpoint
+(defn enqueue-validation
   [endpoint-id profile {:keys [redis-conn gateway-basic-auth gateway-url ooapi-version max-total-requests] :as _config}]
   (let [uuid (str (UUID/randomUUID))
         prof (or profile "rio")

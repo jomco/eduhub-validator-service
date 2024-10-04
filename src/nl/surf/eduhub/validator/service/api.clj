@@ -62,7 +62,7 @@
         auth-opts              {:auth-enabled (boolean auth-enabled)}]
     (-> app-routes
         (wrap-response-handler :checker    #(checker/check-endpoint (:endpoint-id %) config))
-        (wrap-response-handler :validator  #(jobs-client/enqueue-validate-endpoint (:endpoint-id %) (:profile %) config))
+        (wrap-response-handler :validator  #(jobs-client/enqueue-validation (:endpoint-id %) (:profile %) config))
         (wrap-response-handler :load-status (job-status-handler config))
         (auth/wrap-allowed-clients-checker allowed-client-id-set auth-opts)
         (auth/wrap-authentication introspection-endpoint-url introspection-basic-auth auth-opts)
