@@ -35,20 +35,15 @@
               :throw false}]
     (http/get url opts)))
 
-(defn- temp-file [fname ext]
-  (let [tmpfile (File/createTempFile fname ext)]
-    (.deleteOnExit tmpfile)
-    tmpfile))
-
 ;; Uses the ooapi validator to validate an endpoint.
 ;; Returns the generated HTML report.
 (defn validate-endpoint
   "Returns the HTML validation report as a String."
   [endpoint-id {:keys [basic-auth ooapi-version max-total-requests base-url profile] :as opts}]
   {:pre [endpoint-id basic-auth ooapi-version base-url profile]}
-  (let [report-file       (temp-file "report" ".html")
+  (let [report-file       (File/createTempFile "report" ".html")
         report-path       (.getAbsolutePath report-file)
-        observations-file (temp-file "observations" ".edn")
+        observations-file (File/createTempFile "observations" ".edn")
         observations-path (.getAbsolutePath observations-file)
         defaults {:bearer-token nil,
                   :no-report? false,

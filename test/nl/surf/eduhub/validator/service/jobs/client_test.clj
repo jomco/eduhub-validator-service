@@ -66,7 +66,9 @@
             (testing "run worker"
               (with-redefs [http/request (fn wrap-vcr [req] (vcr req))]
                 ;; run worker
-                (eval (pop-queue jobs-atom))
+                (let [[fname & args] (pop-queue jobs-atom)]
+                  (apply (resolve fname) args))
+
                 (let [body (-> uuid make-status-call
                                assert-ok-return-body
                                (test-helper/validate-timestamp :pending-at)
