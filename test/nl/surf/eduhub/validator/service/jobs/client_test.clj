@@ -17,9 +17,12 @@
 (def app (api/compose-app test-config false))
 
 (defn- make-status-call [uuid]
-  (-> (app {:uri (str "/status/" uuid) :request-method :get})
-      (update :body json/read-str)
-      (select-keys [:status :body])))
+  (let [{:keys [status body]}
+        (-> (app {:uri (str "/status/" uuid) :request-method :get})
+            (update :body json/read-str)
+            (select-keys [:status :body]))]
+    (is (= http-status/ok status))
+    body))
 
 (defn- pop-queue [atm]
   (let [old-val @atm]
@@ -29,10 +32,6 @@
         (if (compare-and-set! atm old-val new-val)
           item
           (pop-queue atm))))))
-
-(defn- assert-ok-return-body [resp]
-  (is (= http-status/ok (:status resp)))
-  (:body resp))
 
 (deftest test-queue
   (testing "initial call to api"
@@ -56,8 +55,7 @@
             (is (= job-status "pending"))
             ;; make http request to status
             (is (= {:job-status "pending" :profile "rio" :endpoint-id "google.com"}
-                   (-> uuid make-status-call
-                       assert-ok-return-body
+                   (-> (make-status-call uuid)
                        (test-helper/validate-timestamp :pending-at))))
 
             ;; run the first job in the queue
@@ -68,8 +66,7 @@
                 (let [[fname & args] (pop-queue jobs-atom)]
                   (apply (resolve fname) args))
 
-                (let [body (-> uuid make-status-call
-                               assert-ok-return-body
+                (let [body (-> (make-status-call uuid)
                                (test-helper/validate-timestamp :pending-at)
                                (test-helper/validate-timestamp :finished-at))]
 
