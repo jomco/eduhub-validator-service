@@ -25,8 +25,10 @@ SURF_CONEXT_CLIENT_ID               SurfCONEXT client id for validation service
 SURF_CONEXT_CLIENT_SECRET           SurfCONEXT client secret for validation service
 SURF_CONEXT_INTROSPECTION_ENDPOINT  SurfCONEXT introspection endpoint
 ALLOWED_CLIENT_IDS                  Comma separated list of allowed SurfCONEXT client ids. 
+MAX_TOTAL_REQUESTS                  Maximum number of requests that validator is allowed to make before raising an error
 OOAPI_VERSION                       Ooapi version to pass through to gateway
 SERVER_PORT                         Starts the app server on this port
+JOB_STATUS_EXPIRY_SECONDS           Number of seconds before job status in Redis expires
 ```
 
 ## Build
