@@ -42,9 +42,7 @@
                :middlewares (fn [app]
                              (fn [opts job]
                                ;; adds config to map at the last of the args in job
-                               (let [job-args (:args job)
-                                     arg-opts (assoc (last job-args) :config config)
-                                     new-args (concat (butlast job-args) (list arg-opts))
-                                     new-job (assoc job :args new-args)]
+                               (let [job-args (assoc-in (vec (:args job)) [2 :config] config)
+                                     new-job (assoc job :args job-args)]
                                  (app opts new-job))))))
     (start-server (api/compose-app config :auth-enabled) config)))

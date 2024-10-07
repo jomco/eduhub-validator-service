@@ -64,7 +64,7 @@
               (with-redefs [http/request (fn wrap-vcr [req] (vcr req))]
                 ;; run worker
                 (let [[fname & args] (pop-queue! jobs-atom)]
-                  (apply (resolve fname) args))
+                  (apply (resolve fname) (assoc-in (vec args) [2 :config] test-config)))
 
                 (let [body (-> (make-status-call uuid)
                                (test-helper/validate-timestamp :pending-at)
