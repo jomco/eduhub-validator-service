@@ -39,7 +39,12 @@
     ;; set config as global var (read-only) so that the workers can access it
     (w/start (assoc w/default-opts
                :broker (broker/new-consumer broker/default-opts)
-               :middleware (fn [next]
+               :middlewares (fn [app]
                              (fn [opts job]
-                               (next (assoc opts :config config) job)))))
+                               ;; adds config to map at the last of the args in job
+                               (let [job-args (:args job)
+                                     arg-opts (assoc (last job-args) :config config)
+                                     new-args (concat (butlast job-args) (list arg-opts))
+                                     new-job (assoc job :args new-args)]
+                                 (app opts new-job))))))
     (start-server (api/compose-app config :auth-enabled) config)))

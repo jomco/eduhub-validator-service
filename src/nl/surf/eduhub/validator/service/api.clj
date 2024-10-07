@@ -50,7 +50,7 @@
 
 ;; Turn the contents of a job status (stored in redis) into an http response.
 (defn- job-status-handler [{:keys [redis-conn] :as _config}]
-  (fn [resp]
+  (fn handle-job-status [resp]
     (let [job-status (status/load-status redis-conn (:uuid resp))]
       (if (empty? job-status)
         {:status http-status/not-found}
